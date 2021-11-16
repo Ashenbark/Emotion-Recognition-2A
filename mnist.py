@@ -1,6 +1,6 @@
 '''Trains a SRU on the MNIST dataset.
 
-The parameters are not optimized.
+The parameters are optimized.
 '''
 import matplotlib.pyplot as plt
 import numpy as np
