@@ -1,16 +1,12 @@
 import numpy as np
 import os
 
-import Preprocessor
 import Callbacks
 import Models
 import Generator
 
 source_train = "Train_AFEW/AlignedFaces_LBPTOP_Points/AlignedFaces_LBPTOP_Points"
 source_val = "Train_AFEW/AlignedFaces_LBPTOP_Points_Val/AlignedFaces_LBPTOP_Points_Val"
-
-#x_train, y_train = Preprocessor.importDataFromSourceSingle(source_train)
-#x_test, y_test = Preprocessor.importDataFromSourceSingle(source_val)
 
 names = []
 names_val = []
@@ -42,11 +38,7 @@ test_data = Generator.DataGenerator(source_val, names_val, label_dict, 16, img_s
 
 model = Models.modelLSTM(n_frame)
 model.summary()
-model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy', 'categorical_accuracy'])
-# model.fit(training_data, epochs=30, verbose=1)
-
-# r = model.predict(training_data, 1)
-# print(r)
+model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy']) #, 'categorical_accuracy'])
 
 try:
     model.load_weights("save/best_LSTM")
@@ -54,9 +46,9 @@ except Exception as e:
     print(e)
 
 
-# model.evaluate(x_test, y_test, batch_size=16, verbose=1)
-#
-history = model.fit(training_data, epochs=100,
-                    verbose=1, callbacks=[Callbacks.save_best])#, Callbacks.save_val_best, Callbacks.stopping])
-#
+# model.evaluate(test_data, verbose=1)
+
+history = model.fit(training_data, validation_data=test_data, epochs=150, verbose=1,
+                    callbacks=[Callbacks.save_best, Callbacks.save_val_best, Callbacks.stopping])
+
 np.save('history.npy', history.history)
