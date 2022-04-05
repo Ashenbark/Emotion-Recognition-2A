@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from tensorflow import device
 
 import Callbacks
 import Models
@@ -48,7 +49,20 @@ except Exception as e:
 
 # model.evaluate(test_data, verbose=1)
 
-history = model.fit(training_data, validation_data=test_data, epochs=150, verbose=1,
-                    callbacks=[Callbacks.save_best, Callbacks.save_val_best, Callbacks.stopping])
+initial = 0
+try:
+    history = np.load("history.npy", allow_pickle=True)
+    initial = len(history.item()['loss'])
+    #history.close()
+except Exception as e:
+    print(e)
 
-np.save('history.npy', history.history)
+history = model.fit(training_data, validation_data=test_data, epochs=100+initial, verbose=1, validation_freq=5,
+                    initial_epoch=initial,
+                    callbacks=[Callbacks.save_best, Callbacks.save_val_best])#, Callbacks.stopping])
+
+if initial != 0:
+    index = initial//100
+    np.save(f"history{index}.npy", history.history)
+
+np.save("history.npy", history.history)
