@@ -1,2 +1,2 @@
 
-from .generator import DataGenerator, DataGenerator2
+from .generator import DataGenerator

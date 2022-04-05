@@ -37,26 +37,26 @@ max_frame = 141
 img_shape = 128 * 128
 n_frame = 30
 
-training_data = Generator.DataGenerator2(source_train, names, label_dict, 16, img_shape, n_frame, shuffle=True)
-test_data = Generator.DataGenerator2(source_val, names_val, label_dict, 16, img_shape, n_frame, shuffle=False)
+training_data = Generator.DataGenerator(source_train, names, label_dict, 16, img_shape, n_frame, shuffle=True)
+test_data = Generator.DataGenerator(source_val, names_val, label_dict, 16, img_shape, n_frame, shuffle=False)
 
-model = Models.modelTest(n_frame)
+model = Models.modelLSTM(n_frame)
 model.summary()
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', 'categorical_accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy', 'categorical_accuracy'])
 # model.fit(training_data, epochs=30, verbose=1)
 
 # r = model.predict(training_data, 1)
 # print(r)
 
 try:
-    model.load_weights("best_LSTM")
+    model.load_weights("save/best_LSTM")
 except Exception as e:
     print(e)
 
 
 # model.evaluate(x_test, y_test, batch_size=16, verbose=1)
 #
-history = model.fit(training_data, validation_data=test_data, epochs=100,
-                    verbose=1, callbacks=[Callbacks.save_best, Callbacks.save_val_best, Callbacks.stopping])
+history = model.fit(training_data, epochs=100,
+                    verbose=1, callbacks=[Callbacks.save_best])#, Callbacks.save_val_best, Callbacks.stopping])
 #
 np.save('history.npy', history.history)
