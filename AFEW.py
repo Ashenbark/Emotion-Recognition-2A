@@ -7,8 +7,8 @@ from SRU import SRUCell
 
 import numpy as np
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, RNN, Input
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.layers import Dense, RNN, Input, LSTM
 
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow import device
@@ -109,12 +109,21 @@ save_val_best = ModelCheckpoint(filepath="best_val", monitor='val_loss', save_be
                                 save_freq='epoch', save_weights_only=True, verbose=1)
 
 print(x_train.shape[1:])
-inputs = Input(x_train.shape[1:])
-cell = SRUCell(num_stats=50, mavg_alphas=[0.0, 0.5, 0.9, 0.99, 0.999], recur_dims=10)
-rnn = RNN([cell], return_sequences=False)(inputs)
-output = Dense(num_classes[0], activation='softmax')(rnn)
+# inputs = Input(x_train.shape[1:])
+# cell = SRUCell(num_stats=50, mavg_alphas=[0.0, 0.5, 0.9, 0.99, 0.999], recur_dims=10)
+# rnn = RNN([cell], return_sequences=False)(inputs)
+# output = Dense(num_classes[0], activation='softmax')(rnn)
+#
+# model = Model(inputs=[inputs], outputs=[output])
 
-model = Model(inputs=[inputs], outputs=[output])
+model = Sequential([
+    Input((Preprocessor.img_shape, n_frame)),
+    LSTM(128),
+    Dense(32),
+    Dense(7),
+    Softmax()
+])
+
 #model.load_weights("best_val_tri")
 opt = SGD(learning_rate=0.05)
 model.compile(loss='sparse_categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
