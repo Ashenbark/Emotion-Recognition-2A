@@ -88,6 +88,7 @@ if initial != 0:
         np.save("test.npy", history_cat)
 
     except Exception as e:
+        np.save("history.npy", history.history)
         print(e)
 
 else:
