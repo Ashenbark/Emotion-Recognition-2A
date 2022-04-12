@@ -40,7 +40,6 @@ class DataGenerator(keras.utils.Sequence):
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'
-        # print('test')
         if self.shuffle == True:
             np.random.shuffle(self.names)
 
@@ -71,9 +70,9 @@ class DataGenerator(keras.utils.Sequence):
             for k in range(self.n_frames):
                 X[i, k, :] = stock_frames[math.floor(k/self.n_frames)]
 
-        #print(X.shape, y.shape)
+        # Test if the process is free from errors.
         assert not np.any(np.isnan(X))
-        # quit()
+
         return X, y
 
 # def getOneImage(source, n_frames):

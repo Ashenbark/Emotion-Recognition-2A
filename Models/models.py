@@ -6,7 +6,7 @@ import SRU
 def modelLSTM(n_frame):
     model = Sequential([
         Input((n_frame, Preprocessor.img_shape)),
-        LSTM(128),
+        LSTM(128, recurrent_dropout=0.15),
         Dense(32, activation='relu'),
         Dense(7),
         Softmax()
@@ -26,13 +26,14 @@ def modelDoubleLSTM(n_frame):
 
 def modelTest(n_frame):
     model = Sequential([
-        Input((Preprocessor.img_shape, n_frame)),
-        GRU(128),
+        Input((n_frame, Preprocessor.img_shape)),
+        GRU(128, recurrent_dropout=0.15),
         Dense(32, activation='relu'),
         Dense(7),
         Softmax()
     ])
     return model
+
 
 def modelSRU(n_frame):
     inputs = Input((Preprocessor.img_shape, n_frame))

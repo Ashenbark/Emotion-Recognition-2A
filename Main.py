@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import math
 import os
 from tensorflow import device
 
@@ -29,20 +31,26 @@ for label in os.listdir(source_val):
     for video in os.listdir(source_val + '/' + label):
         names_val.append(f'{label}/{video}')
 
-np.random.shuffle(names)
+random.Random(2022).shuffle(names) #set a seed to replicate validation split
+names_len = len(names)
+train_split = 0.9
+names_train = names[:math.floor(train_split*names_len)]
+names_val = names[math.floor(train_split*names_len):]
+
 max_frame = 141
 img_shape = 128 * 128
 n_frame = 30
 
-training_data = Generator.DataGenerator(source_train, names, label_dict, 16, img_shape, n_frame, shuffle=True)
+training_data = Generator.DataGenerator(source_train, names_train, label_dict, 16, img_shape, n_frame, shuffle=True)
+val_data = Generator.DataGenerator(source_train, names_val, label_dict, 16, img_shape, n_frame, shuffle=True)
 test_data = Generator.DataGenerator(source_val, names_val, label_dict, 16, img_shape, n_frame, shuffle=False)
 
-model = Models.modelLSTM(n_frame)
+model = Models.modelTest(n_frame)
 model.summary()
 model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy']) #, 'categorical_accuracy'])
 
 try:
-    model.load_weights("save/best_LSTM")
+    model.load_weights("save/best_GRU")
 except Exception as e:
     print(e)
 
@@ -57,12 +65,26 @@ try:
 except Exception as e:
     print(e)
 
-history = model.fit(training_data, validation_data=test_data, epochs=100+initial, verbose=1, validation_freq=5,
+
+history = model.fit(training_data, validation_data=val_data, epochs=100+initial, verbose=1, validation_freq=1,
                     initial_epoch=initial,
                     callbacks=[Callbacks.save_best, Callbacks.save_val_best])#, Callbacks.stopping])
 
 if initial != 0:
-    index = initial//100
-    np.save(f"history{index}.npy", history.history)
 
-np.save("history.npy", history.history)
+    history2 = np.load("history.npy", allow_pickle=True)
+
+    history_cat = {'loss': [],
+                   'accuracy': [],
+                   'val_accuracy': []}
+
+    for key, value in history.item().items():
+        history_cat[key] = np.concatenate((history.item()[key], history2.item()[key]))
+
+    del history2
+
+    np.save("history.npy", history_cat)
+    np.save("test.npy", history_cat)
+
+else:
+    np.save("history.npy", history.history)
