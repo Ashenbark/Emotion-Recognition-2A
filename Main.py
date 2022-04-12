@@ -72,19 +72,23 @@ history = model.fit(training_data, validation_data=val_data, epochs=100+initial,
 
 if initial != 0:
 
-    history2 = np.load("history.npy", allow_pickle=True)
+    try:
+        history2 = np.load("history.npy", allow_pickle=True)
 
-    history_cat = {'loss': [],
-                   'accuracy': [],
-                   'val_accuracy': []}
+        history_cat = {'loss': [],
+                       'accuracy': [],
+                       'val_accuracy': []}
 
-    for key, value in history.item().items():
-        history_cat[key] = np.concatenate((history.item()[key], history2.item()[key]))
+        for key, value in history2.item().items():
+            history_cat[key] = np.concatenate((history.history.item()[key], history2.item()[key]))
 
-    del history2
+        del history2
 
-    np.save("history.npy", history_cat)
-    np.save("test.npy", history_cat)
+        np.save("history.npy", history_cat)
+        np.save("test.npy", history_cat)
+
+    except Exception as e:
+        print(e)
 
 else:
     np.save("history.npy", history.history)
