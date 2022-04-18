@@ -23,6 +23,7 @@ label_dict = {
     'Surprise': 6
 }
 
+# Get the names of the videos for the generator
 for label in os.listdir(source_train):
     for video in os.listdir(source_train + '/' + label):
         names.append(f'{label}/{video}')
@@ -37,26 +38,29 @@ train_split = 0.9
 names_train = names[:math.floor(train_split*names_len)]
 names_val = names[math.floor(train_split*names_len):]
 
+# Defined dimensions
 max_frame = 141
 img_shape = 128 * 128
 n_frame = 30
 
+# Create generators to be used
 training_data = Generator.DataGenerator(source_train, names_train, label_dict, 16, img_shape, n_frame, shuffle=True)
 val_data = Generator.DataGenerator(source_train, names_val, label_dict, 16, img_shape, n_frame, shuffle=True)
 test_data = Generator.DataGenerator(source_val, names_val, label_dict, 16, img_shape, n_frame, shuffle=False)
 
+# Definition of the model used
 model = Models.modelTest(n_frame)
 model.summary()
 model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy']) #, 'categorical_accuracy'])
 
+# Loading of previously existing weights
 try:
     model.load_weights("save/best_GRU")
 except Exception as e:
     print(e)
 
 
-# model.evaluate(test_data, verbose=1)
-
+# Get the number of epochs the model has already trained on
 initial = 0
 try:
     history = np.load("history.npy", allow_pickle=True)
@@ -65,31 +69,10 @@ try:
 except Exception as e:
     print(e)
 
+# model.evaluate(test_data, verbose=1)
 
 history = model.fit(training_data, validation_data=val_data, epochs=100+initial, verbose=1, validation_freq=1,
                     initial_epoch=initial,
                     callbacks=[Callbacks.save_best, Callbacks.save_val_best])#, Callbacks.stopping])
 
-if initial != 0:
-
-    try:
-        history2 = np.load("history.npy", allow_pickle=True)
-
-        history_cat = {'loss': [],
-                       'accuracy': [],
-                       'val_accuracy': []}
-
-        for key, value in history2.item().items():
-            history_cat[key] = np.concatenate((history.history.item()[key], history2.item()[key]))
-
-        del history2
-
-        np.save("history.npy", history_cat)
-        np.save("test.npy", history_cat)
-
-    except Exception as e:
-        np.save("history2.npy", history.history)
-        print(e)
-
-else:
-    np.save("history.npy", history.history)
+np.save("history.npy", history.history)
